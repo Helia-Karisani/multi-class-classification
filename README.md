@@ -1,156 +1,79 @@
 # Multi-Class Classification with Logistic Regression
 
-This project performs **multi-class classification of obesity levels** using logistic regression.  
-The task is to predict a person’s obesity category based on demographic, physical, and lifestyle features.
+This project classifies **obesity levels** with logistic regression. The task is to predict a person's obesity category from demographic, physical, and lifestyle features.
 
 ---
 
-## Problem Definition
+## Problem
 
-- **Type**: Supervised learning
-- **Task**: Multi-class classification
-- **Target variable**: `NObeyesdad` (obesity level)
-- **Model**: Logistic Regression (OvR and Multinomial)
+- **Type**: supervised learning
+- **Task**: multi-class classification
+- **Target**: `NObeyesdad` (obesity level)
+- **Models**: logistic regression, One-vs-Rest and Multinomial
 
 ---
 
-## Dataset Overview
+## Dataset
 
-Each row represents one individual.  
-Features include:
+Each row is one person. Features:
 
 - Demographics: `Gender`, `Age`
 - Physical: `Height`, `Weight`
 - Lifestyle: `FAF`, `TUE`, `CH2O`
 - Eating habits: `FCVC`, `NCP`, `CAEC`, `CALC`
-- Health & behavior: `SMOKE`, `SCC`
+- Health and behavior: `SMOKE`, `SCC`
 - Transportation: `MTRANS`
 
-The target variable `NObeyesdad` contains **multiple mutually exclusive classes** representing obesity levels.
+The target has several mutually exclusive classes.
 
 ---
 
-## Preprocessing Steps
+## Preprocessing
 
-### 1. Feature Scaling
-
-Continuous numerical features are standardized using **z-score normalization**:
-
-`x' = (x - μ) / σ`
-
-where:
-- `μ` = mean of the feature
-- `σ` = standard deviation
-
-This ensures all features have:
-- Mean = 0
-- Standard deviation = 1
+1. Continuous features are standardized: `x' = (x - μ) / σ`
+2. Categorical features are encoded.
+3. The target is label-encoded with `astype('category').cat.codes`.
 
 ---
 
-### 2. Target Encoding
+## Models
 
-The target variable is label-encoded:
+### One-vs-Rest (OvR)
 
-`{class_1, class_2, ..., class_K} → {0, 1, ..., K-1}`
+`LogisticRegression(multi_class='ovr')`
 
-This is done using:
-```
-astype('category').cat.codes
-```
+- Trains K binary classifiers, one per class, each predicting class k vs. the rest.
+- Uses the sigmoid `σ(z) = 1 / (1 + e^{-z})`.
+- Predicts the class with the highest score.
+- Loss: `L = -[ y log(p) + (1 - y) log(1 - p) ]`
 
----
+### Multinomial (Softmax)
 
-## Models Used
+`LogisticRegression(multi_class='multinomial')`
 
-### 1. One-vs-Rest Logistic Regression (OvR)
+- Trains one model with one score per class.
+- Uses softmax: `P(y = k | x) = exp(z_k) / Σ_j exp(z_j)`
+- Probabilities sum to 1, so classes compete with each other.
+- Loss: `L = - Σ_k y_k log(P(y = k | x))`
 
-Configured as:
-```
-LogisticRegression(multi_class='ovr')
-```
+### Comparison
 
-#### How it works
-- Trains **K binary classifiers** (one per class)
-- Each classifier learns:
-  
-  `P(y = k | x)` vs `P(y ≠ k | x)`
-
-- Uses the **sigmoid function**:
-
-  `σ(z) = 1 / (1 + e^{-z})`
-
-- Final prediction = class with the highest score
-
-#### Loss function (binary cross-entropy):
-```
-L = -[ y log(p) + (1 - y) log(1 - p) ]
-```
-
----
-
-### 2. Multinomial Logistic Regression (Softmax)
-
-Configured as:
-```
-LogisticRegression(multi_class='multinomial')
-```
-
-#### How it works (jointly trained)
-- Trains **one single model**
-- Computes one score per class:
-
-  `z_1, z_2, ..., z_K`
-
-- Applies **softmax**:
-
-  `P(y = k | x) = exp(z_k) / Σ_j exp(z_j)`
-
-- Probabilities **sum to 1**
-- Classes **compete with each other**
-
-#### Loss function (categorical cross-entropy):
-```
-L = - Σ_k y_k log(P(y = k | x))
-```
-
----
-
-## Key Difference: OvR vs Multinomial
-
-| Aspect | OvR | Multinomial |
+| | OvR | Multinomial |
 |------|-----|-------------|
 | Number of models | K binary models | 1 model |
 | Probability function | Sigmoid | Softmax |
-| Training | Independent per class | Joint over all classes |
-| Probability sum | Not constrained | Sums to 1 |
-| Best for | Simplicity | True multiclass problems |
+| Training | Separate per class | Joint over all classes |
+| Probabilities sum to 1 | No | Yes |
 
----
-
-## Optimization
-
-- Solver uses gradient-based optimization
-- `max_iter = 1000` sets the **maximum number of parameter update steps**
-- Each iteration updates model weights to minimize loss
+Both use `max_iter = 1000`.
 
 ---
 
 ## Output
 
-- Predicted obesity class for each individual
-- Model evaluation via accuracy and classification metrics
-- Feature importance visualized via model coefficients
-
----
-
-## Summary
-
-This notebook demonstrates:
-- Proper preprocessing for ML
-- Two approaches to multi-class logistic regression
-- The mathematical difference between OvR and softmax-based models
-- A full end-to-end classification pipeline
+- Predicted obesity class for each person
+- Accuracy and classification metrics
+- Feature importance from the model coefficients
 
 ---
 
@@ -160,12 +83,4 @@ This notebook demonstrates:
 - pandas
 - numpy
 - scikit-learn
-- matplotlib / seaborn (for visualization)
-
----
-
-## Notes
-
-- All continuous features are standardized
-- Categorical features are encoded before training
-- Multinomial logistic regression is preferred when classes are mutually exclusive
+- matplotlib, seaborn
